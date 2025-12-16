@@ -1,0 +1,269 @@
+
+# 📚 Biblioteca API – Guia Completo de Estudo
+
+Este documento serve como **fonte única de estudo** do projeto Biblioteca API. A ideia é que, ao voltar aqui no futuro, você consiga entender **o porquê de cada decisão**, **como as peças se conectam** e **como evoluir o sistema com segurança**.
+
+---
+
+## 1️⃣ Visão Geral do Projeto
+
+A Biblioteca API é uma **API REST** construída com:
+
+* **FastAPI** → camada HTTP
+* **SQLAlchemy** → ORM (mapeamento objeto-relacional)
+* **Pydantic** → validação e serialização de dados
+* **PostgreSQL** → banco de dados relacional
+* **Alembic** → versionamento de schema (migrations)
+
+O sistema modela um domínio clássico de biblioteca:
+
+* Usuários
+* Livros
+* Empréstimos
+* Reservas
+* Multas
+
+Tudo foi pensado para **separar responsabilidades**, evitar acoplamento e permitir evolução segura.
+
+---
+
+## 2️⃣ Estrutura de Pastas (Mental Map)
+
+```
+app/
+ ├── main.py           # ponto de entrada FastAPI
+ ├── database.py       # engine, SessionLocal, Base
+ ├── deps.py           # dependências (ex: get_db)
+ ├── models/           # modelos SQLAlchemy
+ ├── schemas/          # schemas Pydantic
+ ├── crud/             # regras de acesso ao banco
+ ├── routers/          # endpoints HTTP
+ └── alembic/          # migrations
+```
+
+Essa separação evita o famoso **"arquivo deus"** e facilita testes e manutenção.
+
+---
+
+## 3️⃣ Banco de Dados (database.py)
+
+### engine
+
+```python
+engine = create_engine(DATABASE_URL, echo=True, future=True)
+```
+
+* Cria a conexão com o banco
+* `future=True` → compatível com SQLAlchemy 2.x
+* `echo=True` → loga SQL (bom para aprendizado)
+
+### SessionLocal
+
+```python
+SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+```
+
+* Cada request recebe **uma sessão própria**
+* Nada de conexões globais
+
+### Base
+
+```python
+Base = declarative_base()
+```
+
+* Base comum para todos os models
+* Alembic usa `Base.metadata`
+
+🚫 **Nunca usar `create_all` em produção**
+✔️ Sempre usar **Alembic**
+
+---
+
+## 4️⃣ Dependency Injection (deps.py)
+
+```python
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+```
+
+* FastAPI injeta automaticamente a sessão
+* Garante `commit/rollback` controlados
+* Evita vazamento de conexão
+
+---
+
+## 5️⃣ Models (SQLAlchemy)
+
+### Conceitos-chave
+
+* Cada classe → uma tabela
+* Cada atributo → uma coluna
+* `relationship` → ligação entre tabelas
+* `Enum` → regras de domínio no banco
+
+### Exemplo mental
+
+* `Usuario` → pode ter muitos `Emprestimos`
+* `Emprestimo` → pertence a um `Usuario` e um `Livro`
+* `Multa` → depende de um `Emprestimo`
+
+Cascade é usado para:
+
+* deletar dados filhos automaticamente
+* evitar registros órfãos
+
+---
+
+## 6️⃣ Schemas (Pydantic)
+
+Os schemas **não são models**.
+
+Eles servem para:
+
+* validar entrada (Create / Update)
+* controlar saída (Out)
+* proteger o banco de dados
+
+### Padrão usado
+
+* `XCreate` → dados de entrada
+* `XUpdate` → campos opcionais
+* `XOut` → resposta da API
+
+```python
+class Config:
+    orm_mode = True
+```
+
+Permite que Pydantic leia objetos SQLAlchemy diretamente.
+
+---
+
+## 7️⃣ CRUD (Camada de Persistência)
+
+O CRUD é o **único lugar** que fala com o banco.
+
+### Responsabilidades
+
+* montar queries
+* aplicar regras simples
+* não saber nada de HTTP
+
+### Exemplo
+
+```python
+db.query(Model).filter(...).first()
+```
+
+Se amanhã trocar FastAPI por outra coisa, o CRUD continua válido.
+
+---
+
+## 8️⃣ Regras de Negócio Importantes
+
+### Empréstimo
+
+* começa como `ativo`
+* possui data prevista
+* pode ser renovado
+
+### Devolução
+
+* só empréstimo ativo pode ser devolvido
+* gera multa se houver atraso
+
+### Multa
+
+* valor calculado por dias de atraso
+* status: pendente / paga / cancelada
+
+Essas regras ficam **no CRUD**, não no router.
+
+---
+
+## 9️⃣ Routers (FastAPI)
+
+Routers cuidam apenas de:
+
+* receber request
+* validar payload
+* chamar CRUD
+* devolver response
+
+Nada de regra de negócio pesada aqui.
+
+FastAPI + Pydantic cuidam da conversão automática ORM → JSON.
+
+---
+
+## 🔟 Alembic (Migrations)
+
+### Princípio
+
+> O banco nunca é criado manualmente.
+
+Tudo passa por migration.
+
+### Fluxo padrão
+
+```bash
+alembic revision --autogenerate -m "descricao"
+alembic upgrade head
+```
+
+### Estado atual
+
+```
+91a88286b7f7 (head)
+```
+
+Isso significa:
+
+* banco sincronizado
+* schema versionado
+* ambiente saudável
+
+---
+
+## 1️⃣1️⃣ Boas Práticas Consolidadas
+
+* Nunca usar `create_all`
+* Nunca acessar banco direto no router
+* Sempre versionar migrations no Git
+* Separar leitura e escrita
+* Preferir filtros no banco, não em listas Python
+
+---
+
+## 1️⃣2️⃣ Como Estudar Esse Projeto no Futuro
+
+Sugestão de ordem:
+
+1. Ler este documento
+2. Olhar `models/`
+3. Entender `schemas/`
+4. Estudar `crud/`
+5. Ver `routers/`
+6. Revisar migrations
+
+Se você entender **por que cada camada existe**, você domina o projeto.
+
+---
+
+## 🧠 Conclusão
+
+Este projeto não é apenas uma API.
+
+Ele é um **laboratório de arquitetura backend**, usando práticas reais de mercado:
+
+* separação de camadas
+* versionamento de banco
+* regras de negócio explícitas
+* código sustentável
+
+Guardar este guia é guardar o **mapa mental do sistema**.
