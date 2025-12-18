@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from typing import List
 
 class LivroBase(BaseModel):
     titulo: str
@@ -23,6 +24,12 @@ class LivroOut(LivroBase):
     id: int
     quantidade_disponivel: int
     created_at: datetime
+
+class PageLivro(BaseModel):
+    total: int
+    skip: int
+    limit: int
+    items: List[LivroOut]
 
     class Config:
         orm_mode = True
