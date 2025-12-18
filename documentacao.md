@@ -171,4 +171,142 @@ Pagamento ou quitação de multa
 
 Soft delete vs hard delete
 
-Aqui o projeto deixa de ser “API de estudo” e vira case de portfólio.  -->
+Aqui o projeto deixa de ser “API de estudo” e vira case de portfólio.  
+
+
+Router vira maestro.
+Service vira cérebro.
+CRUD vira músculo.
+-->
+
+Registro de estudo do dia 18/12
+
+Evoluções realizadas (Experiência do consumidor da API)
+1. Separação clara de responsabilidades (Router → Service → CRUD)
+
+Foi consolidada a arquitetura em três camadas bem definidas:
+
+Routers
+Responsáveis apenas por:
+
+receber requisições
+
+validar permissões (roles)
+
+delegar a execução para os services
+
+Services
+Responsáveis por:
+
+aplicar regras de negócio
+
+validar estados do domínio
+
+orquestrar chamadas ao CRUD
+
+CRUD
+Responsável exclusivamente por:
+
+acesso ao banco de dados
+
+operações simples (create, read, update, delete)
+
+nenhuma regra de negócio
+
+Essa separação evita duplicação de lógica, facilita testes e reduz regressões.
+
+2. Padronização de paginação nos endpoints
+
+Os endpoints de listagem passaram a oferecer paginação explícita, melhorando a experiência de quem consome a API (Swagger, front-end, integrações).
+
+Parâmetros adotados:
+
+skip: deslocamento inicial
+
+limit: quantidade de registros por página
+
+Os retornos de listagem agora seguem um padrão consistente:
+
+{
+  "total": 120,
+  "skip": 0,
+  "limit": 10,
+  "items": []
+}
+
+
+Isso permite que o consumidor navegue facilmente entre páginas, inclusive via Swagger.
+
+3. Refatoração dos endpoints de Livro
+
+Os endpoints de livros foram ajustados para:
+
+Delegar lógica ao livro_service
+
+Centralizar regras de negócio
+
+Evitar lógica duplicada nos routers
+
+Garantir respostas HTTP coerentes (404, 204, etc.)
+
+O router agora atua apenas como ponto de entrada, e não como camada decisória.
+
+4. Correção do fluxo de atualização (PATCH)
+
+Foi corrigido o erro onde o service tentava usar model_dump() em um dict.
+
+A responsabilidade ficou clara:
+
+O router recebe o schema
+
+O service trabalha com dict de dados já tratados
+
+O CRUD aplica as alterações no modelo persistido
+
+Isso eliminou erros 500 e tornou o fluxo mais previsível.
+
+5. Regra de negócio: livro não pode ser removido se estiver emprestado
+
+Foi implementada uma regra fundamental do domínio:
+
+Um livro não pode ser removido se existir empréstimo ativo associado a ele.
+
+Implementação:
+
+Criada função específica no emprestimo_crud para verificar existência de empréstimo ativo por livro
+
+A verificação acontece no service, antes do delete
+
+O CRUD permanece simples e sem regras
+
+Exemplo de validação aplicada:
+
+Se houver empréstimo ativo → erro de regra de negócio
+
+Se o livro não existir → 404
+
+Se estiver disponível → remoção permitida
+
+Essa mudança impede inconsistências no sistema e reflete corretamente o mundo real.
+
+6. Correção de erros críticos de delete
+
+Foram corrigidos erros comuns de SQLAlchemy, como:
+
+tentativa de delete() passando id em vez de instância
+
+tentativa de deletar listas ou tipos primitivos
+
+Agora:
+
+o CRUD recebe sempre a instância mapeada
+
+o delete ocorre de forma segura e previsível
+
+7. Ajustes de autorização e roles
+
+Foi validado e corrigido o uso de permissões:
+
+admin e bibliotecario conseguem acessar endpoints restritos
+
+erros 403 foram corrigidos com uso adequado do Depends(exigir_roles(...))
