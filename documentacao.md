@@ -152,3 +152,23 @@ Essas evoluções foram consideradas desde a modelagem inicial.
 ## 🧩 Observação Final
 
 Este documento não é estático. Ele evolui junto com o projeto e serve como memória técnica do sistema.
+
+
+
+<!-- Próximo passo estratégico: Pensar como produto
+
+Depois disso, você pode evoluir o sistema de verdade:
+
+Histórico de empréstimos do usuário
+
+Relatório de multas
+
+Livros mais emprestados
+
+Status do acervo
+
+Pagamento ou quitação de multa
+
+Soft delete vs hard delete
+
+Aqui o projeto deixa de ser “API de estudo” e vira case de portfólio.  -->
