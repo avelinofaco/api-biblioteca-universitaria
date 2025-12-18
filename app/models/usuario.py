@@ -11,11 +11,12 @@ class UsuarioRole(enum.Enum):
 class Usuario(Base):
     __tablename__ = "usuarios"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
     nome = Column(String(255), nullable=False, index=True)
     email = Column(String(255), nullable=False, unique=True, index=True)
-    role = Column(SQLEnum(UsuarioRole), nullable=False, server_default=UsuarioRole.aluno.value)
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    password = Column(String(255), nullable=False)
+    role = Column(SQLEnum(UsuarioRole), nullable=False, server_default="aluno")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     emprestimos = relationship("Emprestimo", back_populates="usuario", cascade="all, delete-orphan")
     reservas = relationship("Reserva", back_populates="usuario", cascade="all, delete-orphan")
