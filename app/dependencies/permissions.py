@@ -1,20 +1,17 @@
 from fastapi import Depends, HTTPException, status
-from app.dependencies.auth import usuario_logado
-from app.models import Usuario
-
+from app.deps import get_current_user
 
 #recebe um usuário real
 #valida o papel
 #barra corretamente
 def exigir_roles(*roles):
-    def checker(usuario: Usuario = Depends(usuario_logado)):
-        role_usuario = usuario.role.value if hasattr(usuario.role, "value") else usuario.role
-
-        if role_usuario not in roles:
+    def role_checker(
+        current_user = Depends(get_current_user)
+    ):
+        if current_user.role.value not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Permissão insuficiente para essa ação."
+                detail="Permissão insuficiente"
             )
-        return usuario
-    return checker
-
+        return current_user
+    return role_checker
