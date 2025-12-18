@@ -1,7 +1,9 @@
-from pydantic import BaseModel  
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from app.schemas.multa import MultaOut
+from typing import List
+
 
 class EmprestimoCreate(BaseModel): # representa o que o cliente precisa enviar para criar um empréstimo
     usuario_id: int
@@ -29,6 +31,17 @@ class EmprestimoOut(BaseModel):  # define O que a API devolve para o cliente
 class EmprestimoDevolucaoOut(BaseModel): # Quando devolvo um livro, quero saber o empréstimo e, se existir, a multa gerada
     emprestimo: EmprestimoOut
     multa: Optional[MultaOut] = None
+
+
+class PageEmprestimo(BaseModel):
+    total: int
+    skip: int
+    limit: int
+    items: List[EmprestimoOut]
+
+
+class RenovacaoEmprestimo(BaseModel):
+    dias: int = Field(7, ge=1, le=30)
 
     class Config:      # "Esse schema pode ser criado a partir de objetos ORM (SQLAlchemy)"
         orm_mode = True
