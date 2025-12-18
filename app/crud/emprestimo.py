@@ -75,6 +75,9 @@ def delete(db: Session, emprestimo_id: int):
     return {"message": "Empréstimo deletado com sucesso"}
 
 
+def count(db: Session) -> int:
+    return db.query(models.Emprestimo).count()
+
 VALOR_MULTA_POR_DIA = Decimal("2.00")
 
 def devolver_emprestimo(db: Session, emprestimo_id: int):
@@ -138,10 +141,12 @@ def renovar_emprestimo(db: Session, emprestimo_id: int, dias: int = 7):
     return emprestimo
 
 # Função para obter todos os empréstimos ativos
-def get_ativos(db: Session):
+def get_ativos(db: Session, skip: int = 0, limit: int = 10):
     return (
         db.query(models.Emprestimo)
         .filter(models.Emprestimo.status == models.EmprestimoStatus.ativo)
+        .offset(skip)
+        .limit(limit)
         .all()
     )
 
@@ -184,4 +189,16 @@ def quantidade_emprestimos_ativos(db: Session, usuario_id: int) -> int:
             models.Emprestimo.status == models.EmprestimoStatus.ativo
         )
         .count()
+    )
+
+def count_ativos(db: Session) -> int:
+    return db.query(models.Emprestimo).count()
+
+
+def existe_emprestimo_ativo_por_livro(db: Session, livro_id: int) -> bool:
+    return (db.query(models.Emprestimo).filter(
+        models.Emprestimo.livro_id == livro_id,
+        models.Emprestimo.status == models.EmprestimoStatus.ativo
+    ).first() 
+    is not None
     )
