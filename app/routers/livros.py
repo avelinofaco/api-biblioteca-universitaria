@@ -5,10 +5,15 @@ from app.dependencies.permissions import exigir_roles
 
 from app import crud, schemas
 from app.deps import get_db
+from app.deps import get_current_user
 
-router = APIRouter(prefix="/livros", tags=["livros"])
 
-@router.post("/", response_model=schemas.LivroOut, status_code=status.HTTP_201_CREATED, description="So quem pode criar livros sao os adminstradores/bibliotecarios")
+router = APIRouter(prefix="/livros", tags=["livros"], dependencies=[Depends(get_current_user)])
+
+# Criar livro
+
+@router.post("/", response_model=schemas.LivroOut, status_code=status.HTTP_201_CREATED, description="So quem pode criar livros sao os adminstradores ou " \
+"bibliotecarios")
 def criar_livro(livro_in: schemas.LivroCreate, 
                 db: Session = Depends(get_db),
                 _ = Depends(exigir_roles("admin","bibliotecario"))):
@@ -22,6 +27,7 @@ def criar_livro(livro_in: schemas.LivroCreate,
     )
     return livro
 
+# Listar livros todos usuarios pode ver
 @router.get("/", response_model=List[schemas.LivroOut])
 def listar_livros(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
     # simples: usar query direta via crud (podes criar função se preferir)
@@ -29,6 +35,7 @@ def listar_livros(skip: int = 0, limit: int = 50, db: Session = Depends(get_db))
     livros = db.execute(select(crud.Livro).offset(skip).limit(limit)).scalars().all()
     return livros
 
+#Recuperar livro 
 @router.get("/{livro_id}", response_model=schemas.LivroOut)
 def recuperar_livro(livro_id: int, db: Session = Depends(get_db)):
     livro = crud.get_livro(db, livro_id=livro_id)
@@ -36,6 +43,7 @@ def recuperar_livro(livro_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Livro não encontrado")
     return livro
 
+# Atualizar livro 
 @router.put("/{livro_id}", response_model=schemas.LivroOut)
 def atualizar_livro(livro_id: int, payload: schemas.LivroUpdate, db: Session = Depends(get_db)):
     livro = crud.get_livro(db, livro_id=livro_id)
