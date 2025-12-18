@@ -1,20 +1,55 @@
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from app.deps import get_db
-from app import models
+from datetime import datetime, timedelta, timezone
+from jose import jwt
+from passlib.context import CryptContext
+from dotenv import load_dotenv
+import os
 
-def get_current_user(db: Session = Depends(get_db)):
-    """
-    TEMPORÁRIO:
-    Retorna um usuário qualquer do banco.
-    Depois isso vira JWT.
-    """
-    usuario = db.query(models.Usuario).first()
+# ===== Carregar variáveis de ambiente =====
+load_dotenv()
 
-    if not usuario:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuário não autenticado."
-        )
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
-    return usuario
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY não configurada no .env")
+
+if not ACCESS_TOKEN_EXPIRE_MINUTES:
+    raise RuntimeError("ACCESS_TOKEN_EXPIRE_MINUTES não configurado no .env")
+
+ACCESS_TOKEN_EXPIRE_MINUTES = int(ACCESS_TOKEN_EXPIRE_MINUTES)
+
+# ===== Contexto de hash =====
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto"
+)
+
+# ===== Password =====
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+# ===== JWT =====
+def create_access_token(
+    data: dict,
+    expires_delta: timedelta | None = None
+) -> str:
+    to_encode = data.copy()
+
+    expire = datetime.now(timezone.utc) + (
+        expires_delta
+        if expires_delta
+        else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+
+    to_encode.update({"exp": expire})
+
+    return jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
