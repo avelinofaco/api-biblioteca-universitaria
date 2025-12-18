@@ -1,13 +1,16 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.security import hash_password
 
 def create(db: Session, usuario: schemas.UsuarioCreate):
-    db_usuario = models.Usuario(**usuario.model_dump())
+    dados = usuario.model_dump()
+    dados["password"] = hash_password(dados["password"])
+
+    db_usuario = models.Usuario(**dados)
     db.add(db_usuario)
     db.commit()
     db.refresh(db_usuario)
     return db_usuario
-
 def get_all(db: Session):
     return db.query(models.Usuario).all()
 
