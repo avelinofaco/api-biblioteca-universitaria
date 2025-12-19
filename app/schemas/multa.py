@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
+from typing import List
 
 class MultaCreate(BaseModel):
     emprestimo_id: int
@@ -26,5 +27,10 @@ class MultaOut(BaseModel):
     gerada_em: datetime
     paga_em: Optional[datetime] = None
 
+class PageMulta(BaseModel):
+    total: int
+    skip: int
+    limit: int
+    items: List["MultaOut"]
     class Config:
         orm_mode = True
