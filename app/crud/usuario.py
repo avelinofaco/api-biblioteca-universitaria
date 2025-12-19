@@ -11,11 +11,28 @@ def create(db: Session, usuario: schemas.UsuarioCreate):
     db.commit()
     db.refresh(db_usuario)
     return db_usuario
-def get_all(db: Session):
-    return db.query(models.Usuario).all()
+
+
+def get_all(db: Session, skip: int = 0, limit: int = 50):
+    return (
+        db.query(models.Usuario)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def count(db: Session):
+    return db.query(models.Usuario).count()
+
 
 def get_by_id(db: Session, usuario_id: int):
-    return db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
+    return (
+        db.query(models.Usuario)
+        .filter(models.Usuario.id == usuario_id)
+        .first()
+    )
+
 
 def update(db: Session, usuario_id: int, usuario: schemas.UsuarioUpdate):
     db_usuario = get_by_id(db, usuario_id)
@@ -29,11 +46,12 @@ def update(db: Session, usuario_id: int, usuario: schemas.UsuarioUpdate):
     db.refresh(db_usuario)
     return db_usuario
 
+
 def delete(db: Session, usuario_id: int):
     db_usuario = get_by_id(db, usuario_id)
     if not db_usuario:
-        return None
+        return False
+
     db.delete(db_usuario)
     db.commit()
     return True
-
