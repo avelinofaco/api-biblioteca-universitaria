@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+from typing import List
 
 class UsuarioBase(BaseModel):
     nome: str
@@ -20,5 +21,10 @@ class UsuarioOut(UsuarioBase):
     role: str
     created_at: datetime
 
+class PageUsuario(BaseModel):
+    total: int
+    skip: int
+    limit: int
+    items: List[UsuarioOut]
     class Config:
         orm_mode = True
