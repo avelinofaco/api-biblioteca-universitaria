@@ -1,5 +1,7 @@
 from fastapi import FastAPI
-from app.routers import login, livros, usuarios, emprestimos, reservas, multas
+from app.routers import login, livros, usuarios, emprestimos, reservas, multas, historico_comportamento
+
+
 
 app = FastAPI(title="API Biblioteca Universitária")
 
@@ -12,6 +14,7 @@ app.include_router(usuarios.router)
 app.include_router(emprestimos.router)
 app.include_router(reservas.router)
 app.include_router(multas.router)
+app.include_router(historico_comportamento.router)
 
 
 @app.get("/")
