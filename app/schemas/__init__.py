@@ -4,3 +4,4 @@ from .usuario import *
 from .emprestimo import *
 from .reserva import *
 from .multa import *
+from .historico_comportamento import *
