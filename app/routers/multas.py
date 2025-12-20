@@ -100,9 +100,7 @@ def recuperar_multa(
 def pagar_multa(
     multa_id: int,
     db: Session = Depends(get_db),
-    usuario_logado: models.Usuario = Depends(get_current_user),
-    _ = Depends(exigir_roles("aluno"))
-):
+    usuario_logado: models.Usuario = Depends(get_current_user),):
     try:
         return multa_service.pagar_multa_service(
             db=db,
