@@ -7,6 +7,8 @@ from .usuario import Usuario, UsuarioRole
 from .emprestimo import Emprestimo, EmprestimoStatus
 from .reserva import Reserva, ReservaStatus
 from .multa import Multa, MultaStatus
+from .historico_comportamento import HistoricoComportamento
+
 
 __all__ = [
     "Base",
@@ -19,4 +21,5 @@ __all__ = [
     "ReservaStatus",
     "Multa",
     "MultaStatus",
+    "HistoricoComportamento",
 ]
