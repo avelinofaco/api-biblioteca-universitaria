@@ -78,52 +78,14 @@ def delete(db: Session, emprestimo_id: int):
 def count(db: Session) -> int:
     return db.query(models.Emprestimo).count()
 
-VALOR_MULTA_POR_DIA = Decimal("2.00")
-
-def devolver_emprestimo(db: Session, emprestimo_id: int):
-    emprestimo = get_by_id(db, emprestimo_id)
-    if not emprestimo:
-        return None
-
-    if emprestimo.status != models.EmprestimoStatus.ativo:
-        return None
-
-    agora = datetime.now(timezone.utc)
-
-    emprestimo.data_devolucao = agora
+# Função para devolver um empréstimo(busca emprestimo, atualiza status e datas, persitir e retornar objeto)
+def devolver_emprestimo(db: Session, emprestimo: models.Emprestimo, devolvido_em: datetime):
     emprestimo.status = models.EmprestimoStatus.devolvido
-
-    multa_obj = None
-    if agora > emprestimo.data_prevista_devolucao:
-        dias_atraso = max(
-            (agora.date() - emprestimo.data_prevista_devolucao.date()).days,
-            1
-        )
-
-        valor = (Decimal(dias_atraso) * VALOR_MULTA_POR_DIA).quantize(
-            Decimal("0.01")
-        )
-
-        multa_obj = models.Multa(
-            emprestimo_id=emprestimo.id,
-            usuario_id=emprestimo.usuario_id,
-            valor=valor,
-            descricao=f"Multa por {dias_atraso} dia(s) de atraso",
-            status=models.MultaStatus.pendente
-        )
-
-        db.add(multa_obj)
+    emprestimo.data_devolucao = devolvido_em
 
     db.commit()
-
     db.refresh(emprestimo)
-    if multa_obj:
-        db.refresh(multa_obj)
-
-    return {
-        "emprestimo": emprestimo,
-        "multa": multa_obj
-    }
+    return emprestimo
 
 
 def renovar_emprestimo(db: Session, emprestimo_id: int, dias: int = 7):
