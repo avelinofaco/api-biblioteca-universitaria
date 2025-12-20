@@ -8,9 +8,6 @@ def create(db: Session, data: dict) -> models.Livro:
     db.refresh(livro)
     return livro
 
-from sqlalchemy.orm import Session
-from app import models
-
 def existe_emprestimo_ativo_por_livro(db: Session, livro_id: int) -> bool:
     return (
         db.query(models.Emprestimo)

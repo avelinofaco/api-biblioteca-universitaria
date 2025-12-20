@@ -5,7 +5,7 @@ from app.dependencies.permissions import exigir_roles
 from app.services import livro_service
 from app.services.exceptions import BusinessRuleError, NotFoundError
 
-from app import crud, schemas
+from app import schemas
 from app.deps import get_db
 from app.deps import get_current_user
 
@@ -13,12 +13,12 @@ from app.deps import get_current_user
 router = APIRouter(prefix="/livros", tags=["livros"], dependencies=[Depends(get_current_user)]) #ninguém acessa livros sem estar logado
 
 # Criar livro
-@router.post("/", response_model=schemas.LivroOut, status_code=status.HTTP_201_CREATED, description="So quem pode criar livros sao os adminstradores ou " \
-"bibliotecarios")
-def criar_livro(livro_in: schemas.LivroCreate, 
-                db: Session = Depends(get_db),
-                _ = Depends(exigir_roles("admin","bibliotecario"))):
-    return livro_service.criar_livro_service(db, livro_in)
+@router.post("/", response_model=schemas.LivroOut, status_code=status.HTTP_201_CREATED, 
+             description="So quem pode criar livros sao os adminstradores ou bibliotecarios")
+def criar_livro(livro_in: schemas.LivroCreate,   #rota espera um LivroCreate(validação do corpo)
+                db: Session = Depends(get_db),   # Tem dependencia com seesao BD
+                _ = Depends(exigir_roles("admin","bibliotecario"))): #Regra de autorização
+    return livro_service.criar_livro_service(db, livro_in)   # retorna um LivroOut
 
 # Listar livros
 @router.get("/", response_model=schemas.PageLivro)
