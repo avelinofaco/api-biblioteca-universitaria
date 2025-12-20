@@ -31,6 +31,6 @@ class PageMulta(BaseModel):
     total: int
     skip: int
     limit: int
-    items: List["MultaOut"]
+    items: List[MultaOut]
     class Config:
         orm_mode = True
