@@ -55,7 +55,8 @@ def multas_do_usuario(
 @router.get(
     "/me",
     response_model=schemas.PageMulta,
-    summary="Listar minhas multas"
+    summary="Listar minhas multas",
+    description="Usuario logado pode listar suas multas."
 )
 def minhas_multas(
     skip: int = 0,
@@ -95,7 +96,8 @@ def recuperar_multa(
 @router.post(
     "/{multa_id}/pagar",
     response_model=schemas.MultaOut,
-    summary="Pagar multa"
+    summary="Pagar multa",
+    description="Usuario logado pode pagar sua multa."
 )
 def pagar_multa(
     multa_id: int,

@@ -21,7 +21,7 @@ def criar_livro(livro_in: schemas.LivroCreate,   #rota espera um LivroCreate(val
     return livro_service.criar_livro_service(db, livro_in)   # retorna um LivroOut
 
 # Listar livros
-@router.get("/", response_model=schemas.PageLivro)
+@router.get("/", response_model=schemas.PageLivro, description="Toso usuarios podem ver livros")
 def listar_livros(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
     return livro_service.listar_livros_service(db, skip, limit)
 
@@ -36,7 +36,7 @@ def recuperar_livro(livro_id: int, db: Session = Depends(get_db)):
 
 
 # Atualizar livro 
-@router.patch("/{livro_id}", response_model=schemas.LivroOut)
+@router.patch("/{livro_id}", response_model=schemas.LivroOut, description="Somente admin ou bibliotecario pode atualizar livros")
 def atualizar_livro(livro_id: int, payload: schemas.LivroUpdate, 
                     db: Session = Depends(get_db),
                     _ = Depends(exigir_roles("admin","bibliotecario"))):
