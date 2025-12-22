@@ -30,10 +30,12 @@ def criar_emprestimo(payload: schemas.EmprestimoCreate,
 
 
 # Endpoint para devolver um empréstimo
-@router.post("/{emprestimo_id}/devolver", response_model=schemas.EmprestimoDevolucaoOut, description="Devolve um empréstimo ativo e calcula multa se houver atraso.   Só admin e bibliotecario podem fazer isso.")
+@router.post("/{emprestimo_id}/devolver", response_model=schemas.EmprestimoDevolucaoOut, 
+             summary="Devolver um empréstimo",
+             description="Devolve um empréstimo ativo e calcula multa se houver atraso.   Só admin e bibliotecario podem fazer isso.")
 def devolver_emprestimo(emprestimo_id: int, db: Session = Depends(get_db),
-                        usuario = Depends(get_current_user),
-                        _ = Depends(exigir_roles("bibliotecario","admin"))):
+                        _ = Depends(get_current_user),
+                        _r = Depends(exigir_roles("bibliotecario","admin"))):
     try:
         return devolver_emprestimo_service(db=db,emprestimo_id=emprestimo_id)
     # Recurso não encontrado

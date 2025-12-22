@@ -9,20 +9,13 @@ from app.models import Usuario
 router = APIRouter(tags=["Auth"])
 
 
-@router.post("/login", status_code=status.HTTP_200_OK)
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-):
-    user = db.query(Usuario).filter(
-        Usuario.email == form_data.username
-    ).first()
+@router.post("/login", status_code=status.HTTP_200_OK, description="Login de usuário")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    
+    user = db.query(Usuario).filter(Usuario.email == form_data.username).first()
 
     if not user or not verify_password(form_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email ou senha inválidos"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email ou senha inválidos")
 
     access_token = create_access_token({"sub": str(user.id)})
 
