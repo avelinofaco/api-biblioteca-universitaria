@@ -1,5 +1,4 @@
-📚 API de Biblioteca — Backend
-Visão Geral
+Sistema que controla circulação de patrimônio físico com regras legais, financeiras e operacionais.
 
 Esta é uma API REST para gerenciamento de uma biblioteca, desenvolvida com foco em aprendizado de backend, modelagem de domínio e implementação de regras de negócio reais.
 
